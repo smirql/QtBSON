@@ -24,16 +24,38 @@ private:
 
 namespace BSON {
 
+///
+/// \brief toBson
+/// \param obj
+/// \param ok indicator true or false on success or not
+/// \throw BSONexception on mongocxx exception without bool ok argument
+/// \return bson document
+///
 bsoncxx::document::value toBson(const QVariantMap &obj, bool &ok) noexcept;
-bsoncxx::document::value toBson(const QVariantMap &obj) throw (BSONexception);
+bsoncxx::document::value toBson(const QVariantMap &obj) noexcept(false);
 
+///
+/// \brief fromBson
+/// \param bson
+/// \param ok indicator true or false on success or not
+/// \throw BSONexception on mongocxx exception without bool ok argument
+/// \return
+///
 QVariantMap fromBson(const bsoncxx::document::value &bson, bool &ok) noexcept;
-QVariantMap fromBson(const bsoncxx::document::value &bson) throw (BSONexception);
+QVariantMap fromBson(const bsoncxx::document::value &bson) noexcept(false);
 QVariantMap fromBson(const bsoncxx::document::view &bson, bool &ok) noexcept;
-QVariantMap fromBson(const bsoncxx::document::view &bson) throw (BSONexception);
+QVariantMap fromBson(const bsoncxx::document::view &bson) noexcept(false);
 
+///
+/// \brief fromBsonValue
+/// \param value
+/// \param ok
+/// \param ok indicator true or false on success or not
+/// \throw BSONexception on mongocxx exception without bool ok argument
+/// \return
+///
 QVariant fromBsonValue(const bsoncxx::types::value & value, bool &ok) noexcept;
-QVariant fromBsonValue(const bsoncxx::types::value & value) throw (BSONexception);
+QVariant fromBsonValue(const bsoncxx::types::value & value) noexcept(false);
 
 void init();
 
@@ -62,6 +84,10 @@ struct BSONoid
     QDateTime time;
 
     BSONoid() {}
+
+    BSONoid(QString hex) {
+        data = QByteArray::fromHex(hex.toLatin1());
+    }
 
     BSONoid(QByteArray hex) {
         data = QByteArray::fromHex(hex);

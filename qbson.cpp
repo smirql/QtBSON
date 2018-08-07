@@ -96,6 +96,28 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
         return value(b_utf8{
                          stdx::string_view(utf8.constData(), utf8.size())});
     }
+    case QVariant::StringList: {
+        bool f = true;
+        const QStringList & sl = refVariantValue<QStringList>(v, f);
+        if (!f)
+            throw BSONexception(QString("Error in %1")
+                                .arg(v.typeName()));
+
+        auto array_builder = bsoncxx::builder::basic::array{};
+
+        for (auto iter = sl.constBegin();
+             iter != sl.constEnd();
+             ++iter) {
+            array_builder.append(toBsonValue(*iter,
+                                             data_lst,
+                                             b_docs,
+                                             b_arrays));
+        }
+
+        b_arrays << bsoncxx::array::value(array_builder.view());
+
+        return value(b_array{b_arrays.last().view()});
+    }
     case QVariant::LongLong:
         return value(b_int64{v.toLongLong()});
     case QVariant::UInt:
@@ -127,18 +149,21 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
     }
     case QVariant::List: {
         bool f = true;
-        QVariantList list = refVariantValue<QVariantList>(v, f);
+        const QVariantList list = refVariantValue<QVariantList>(v, f);
         if (!f)
             throw BSONexception(QString("Error in %1")
                                 .arg(v.typeName()));
 
         auto array_builder = bsoncxx::builder::basic::array{};
 
-        while (list.count() > 0)
-            array_builder.append(toBsonValue(list.takeFirst(),
+        for (auto iter = list.constBegin();
+             iter != list.constEnd();
+             ++iter) {
+            array_builder.append(toBsonValue(*iter,
                                              data_lst,
                                              b_docs,
                                              b_arrays));
+        }
 
         b_arrays << bsoncxx::array::value(array_builder.view());
 
@@ -457,7 +482,6 @@ noexcept
 }
 
 bsoncxx::document::value toBson(const QVariantMap & obj)
-throw (BSONexception)
 {
     using namespace bsoncxx;
     using bsoncxx::builder::basic::kvp;
@@ -493,7 +517,6 @@ noexcept
 }
 
 QVariantMap fromBson(const bsoncxx::document::value &bson)
-throw (BSONexception)
 {
     return fromBson(bson.view());
 }
@@ -511,7 +534,6 @@ noexcept
 }
 
 QVariantMap fromBson(const bsoncxx::document::view &bson)
-throw (BSONexception)
 {
     QVariantMap obj;
 
@@ -552,7 +574,6 @@ noexcept
 }
 
 QVariant fromBsonValue(const bsoncxx::types::value &value)
-throw (BSONexception)
 {
     return _private::fromBsonValue(value);
 }
