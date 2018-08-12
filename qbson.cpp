@@ -435,6 +435,7 @@ void initTypes() {
         QMetaType::registerEqualsComparator<BSONoid>();
         QMetaType::registerDebugStreamOperator<BSONoid>();
         qRegisterMetaTypeStreamOperators<BSONoid>();
+        QMetaType::registerConverter<BSONoid, QString>(&BSONoid::toString);
 
         qRegisterMetaType<BSONregexp>("BSONregexp");
         QMetaType::registerEqualsComparator<BSONregexp>();
@@ -581,6 +582,11 @@ QVariant fromBsonValue(const bsoncxx::types::value &value)
 void init()
 {
     _private::initTypes();
+}
+
+QVariant id(const QString &id)
+{
+    return QVariant::fromValue(BSONoid(id));
 }
 
 }

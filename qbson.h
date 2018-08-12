@@ -57,6 +57,8 @@ QVariantMap fromBson(const bsoncxx::document::view &bson) noexcept(false);
 QVariant fromBsonValue(const bsoncxx::types::value & value, bool &ok) noexcept;
 QVariant fromBsonValue(const bsoncxx::types::value & value) noexcept(false);
 
+QVariant id(const QString & id);
+
 void init();
 
 }
@@ -95,6 +97,10 @@ struct BSONoid
 
     QString toHex() const {
         return data.toHex();
+    }
+
+    QString toString() const {
+        return toHex();
     }
 };
 Q_DECLARE_METATYPE(BSONoid)
