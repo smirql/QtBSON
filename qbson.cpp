@@ -310,6 +310,8 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
             return toBsonValue(v.toString(), data_lst,
                                b_docs, b_arrays);
 
+        return toCustomBSONBinary(v, data_lst);
+
         throw BSONexception(QString("Error in unknown type %1")
                             .arg(v.typeName()));
     }
