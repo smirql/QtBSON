@@ -7,6 +7,7 @@
 #include <QException>
 
 #include <bsoncxx/document/value.hpp>
+#include <bsoncxx/array/value.hpp>
 
 class BSONexception : public QException {
 
@@ -33,6 +34,16 @@ namespace BSON {
 ///
 bsoncxx::document::value toBson(const QVariantMap &obj, bool &ok) noexcept;
 bsoncxx::document::value toBson(const QVariantMap &obj) noexcept(false);
+
+///
+/// \brief toBsonArray
+/// \param lst
+/// \param ok
+/// \throw BSONexception on mongocxx exception without bool ok argument
+/// \return
+///
+bsoncxx::array::value toBsonArray(const QVariantList &lst, bool &ok) noexcept;
+bsoncxx::array::value toBsonArray(const QVariantList &lst) noexcept(false);
 
 ///
 /// \brief fromBson

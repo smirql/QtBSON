@@ -507,6 +507,44 @@ bsoncxx::document::value toBson(const QVariantMap & obj)
     return document::value(doc.view());
 }
 
+bsoncxx::array::value toBsonArray(const QVariantList &lst, bool &ok)
+noexcept
+{
+    using namespace bsoncxx;
+    try {
+        return toBsonArray(lst);
+    } catch (BSONexception & e) {
+        Q_UNUSED(e)
+        ok = false;
+        return array::value(builder::basic::array{});
+    } catch (...) {
+        throw BSONexception("BSON::fromBson unknown exception");
+    }
+}
+
+bsoncxx::array::value toBsonArray(const QVariantList &lst)
+noexcept(false)
+{
+    using namespace bsoncxx;
+    using bsoncxx::builder::basic::kvp;
+    using namespace _private;
+    auto array = builder::basic::array{};
+
+    initTypes();
+
+    QList<QByteArray> data_lst;
+    QList<bsoncxx::document::value> b_docs;
+    QList<bsoncxx::array::value> b_arrays;
+
+    auto it = lst.begin();
+    while(it != lst.end()) {
+        array.append(toBsonValue(*it, data_lst,
+                                 b_docs, b_arrays));
+        ++it;
+    }
+    return array::value(array.view());
+}
+
 QVariantMap fromBson(const bsoncxx::document::value &bson, bool &ok)
 noexcept
 {
