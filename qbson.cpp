@@ -95,7 +95,7 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
         const QByteArray & utf8 = data_lst.last();
         return value(b_utf8{
                          stdx::string_view(utf8.constData(), utf8.size())});
-    }
+    } break;
     case QVariant::StringList: {
         bool f = true;
         const QStringList & sl = refVariantValue<QStringList>(v, f);
@@ -117,7 +117,7 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
         b_arrays << bsoncxx::array::value(array_builder.view());
 
         return value(b_array{b_arrays.last().view()});
-    }
+    } break;
     case QVariant::LongLong:
         return value(b_int64{v.toLongLong()});
     case QVariant::UInt:
@@ -146,7 +146,7 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
         b_docs << bsoncxx::document::value(doc.view());
 
         return value(b_document{b_docs.last().view()});
-    }
+    } break;
     case QVariant::List: {
         bool f = true;
         const QVariantList list = refVariantValue<QVariantList>(v, f);
@@ -168,7 +168,7 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
         b_arrays << bsoncxx::array::value(array_builder.view());
 
         return value(b_array{b_arrays.last().view()});
-    }
+    } break;
     case QVariant::Double:
         return value(b_double{v.toDouble()});
     case QVariant::Bool:
@@ -184,7 +184,7 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
 
         milliseconds secs(data.toMSecsSinceEpoch());
         return value(b_date(secs));
-    }
+    } break;
     case QVariant::Invalid:
         return value(b_null());
     case QVariant::ByteArray: {
@@ -201,7 +201,7 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
         bin.bytes = (uint8_t*) binary.constData();
 
         return value(bin);
-    }
+    } break;
     case QVariant::Uuid: {
         bool f = true;
         const QUuid & uuid = refVariantValue<QUuid>(v, f);
@@ -218,7 +218,7 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
         bin.bytes = (uint8_t*) blob.constData();
 
         return value(bin);
-    }
+    } break;
     case QVariant::UserType: {
 
         if (v.userType() == qMetaTypeId<BSONbinary>()) {
@@ -292,7 +292,7 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
             return value(b_regex{binary.regexp.toStdString(), binary.regexp.toStdString()});
         }
 
-    }
+    } break;
     default:
         if (v.canConvert(QVariant::Map))
             return toBsonValue(v.toMap(), data_lst,
@@ -315,6 +315,9 @@ bsoncxx::types::value toBsonValue(const QVariant &v,
         throw BSONexception(QString("Error in unknown type %1")
                             .arg(v.typeName()));
     }
+
+    throw BSONexception(QString("Error in unknown type %1")
+                        .arg(v.typeName()));
 }
 
 QVariant fromBsonValue(const bsoncxx::types::value & value) {
@@ -329,7 +332,7 @@ QVariant fromBsonValue(const bsoncxx::types::value & value) {
         const stdx::string_view & view = value.get_utf8().value;
         QByteArray data(view.data(), view.size());
         return QString::fromUtf8(data);
-    }
+    } break;
     case type::k_undefined: return QVariant();
     case type::k_oid: {
         BSONoid id;
@@ -337,13 +340,13 @@ QVariant fromBsonValue(const bsoncxx::types::value & value) {
         id.data = QByteArray::fromHex( QString::fromStdString(oid.to_string()).toLatin1() );
         id.time = QDateTime::fromSecsSinceEpoch((qint64) oid.get_time_t());
         return QVariant::fromValue(id);
-    }
+    } break;
     case type::k_bool: return value.get_bool().value;
     case type::k_date: {
         QDateTime res;
         res.setMSecsSinceEpoch(value.get_date().value.count());
         return res;
-    }
+    } break;
     case type::k_binary: {
         const b_binary & binary = value.get_binary();
 
@@ -372,19 +375,19 @@ QVariant fromBsonValue(const bsoncxx::types::value & value) {
         default:
             break;
         }
-    }
-    case type::k_null: QVariant();
+    } break;
+    case type::k_null: return QVariant();
     case type::k_regex: {
         BSONregexp re;
         re.regexp = QString::fromStdString(value.get_regex().regex.to_string());
         re.options = QString::fromStdString(value.get_regex().options.to_string());
         return QVariant::fromValue(re);
-    }
+    } break;
     case type::k_code: {
         BSONcode code;
         code.code = QString::fromStdString(value.get_code().code.to_string());
         return QVariant::fromValue(code);
-    }
+    } break;
     case type::k_array: {
         QVariantList res;
 
@@ -396,7 +399,7 @@ QVariant fromBsonValue(const bsoncxx::types::value & value) {
         }
 
         return res;
-    }
+    } break;
     case type::k_document: {
 
         QVariantMap res;
@@ -412,7 +415,7 @@ QVariant fromBsonValue(const bsoncxx::types::value & value) {
                         fromBsonValue(element.get_value()));
         }
         return res;
-    }
+    } break;
     case type::k_int32:
         return QVariant(value.get_int32().value);
     case type::k_int64:
@@ -421,6 +424,8 @@ QVariant fromBsonValue(const bsoncxx::types::value & value) {
         throw BSONexception(QString("Error in unknown type %1")
                             .arg((int) value.type()));
     }
+    throw BSONexception(QString("Error in unknown type %1")
+                        .arg((int) value.type()));
 }
 
 void initTypes() {
@@ -480,7 +485,9 @@ noexcept
         ok = false;
         return document::value(builder::basic::document{});
     } catch (...) {
-        throw BSONexception("BSON::fromBson unknown exception");
+        ok = false;
+        qDebug() << "BSON::fromBson unknown exception";
+        return document::value(builder::basic::document{});
     }
 }
 
@@ -518,7 +525,9 @@ noexcept
         ok = false;
         return array::value(builder::basic::array{});
     } catch (...) {
-        throw BSONexception("BSON::fromBson unknown exception");
+        ok = false;
+        qDebug() << "BSON::fromBson unknown exception";
+        return array::value(builder::basic::array{});
     }
 }
 
@@ -610,6 +619,7 @@ noexcept
         return QVariant();
     } catch (...) {
         qDebug() << "BSON::fromBsonValue unknown exception";
+        ok = false;
         return QVariant();
     }
 }
