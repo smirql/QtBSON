@@ -28,9 +28,9 @@ namespace BSON {
 ///
 /// \brief toBson
 /// \param obj
-/// \param ok indicator true or false on success or not
+/// \param ok indicator false on not success, not success will not change
 /// \throw BSONexception on mongocxx exception without bool ok argument
-/// \return bson document
+/// \return BSON document
 ///
 bsoncxx::document::value toBson(const QVariantMap &obj, bool &ok) noexcept;
 bsoncxx::document::value toBson(const QVariantMap &obj) noexcept(false);
@@ -38,9 +38,9 @@ bsoncxx::document::value toBson(const QVariantMap &obj) noexcept(false);
 ///
 /// \brief toBsonArray
 /// \param lst
-/// \param ok
+/// \param ok indicator false on not success, not success will not change
 /// \throw BSONexception on mongocxx exception without bool ok argument
-/// \return
+/// \return BSON array
 ///
 bsoncxx::array::value toBsonArray(const QVariantList &lst, bool &ok) noexcept;
 bsoncxx::array::value toBsonArray(const QVariantList &lst) noexcept(false);
@@ -48,9 +48,9 @@ bsoncxx::array::value toBsonArray(const QVariantList &lst) noexcept(false);
 ///
 /// \brief fromBson
 /// \param bson
-/// \param ok indicator true or false on success or not
+/// \param ok indicator false on not success, not success will not change
 /// \throw BSONexception on mongocxx exception without bool ok argument
-/// \return
+/// \return QVariantMap value
 ///
 QVariantMap fromBson(const bsoncxx::document::value &bson, bool &ok) noexcept;
 QVariantMap fromBson(const bsoncxx::document::value &bson) noexcept(false);
@@ -60,10 +60,9 @@ QVariantMap fromBson(const bsoncxx::document::view &bson) noexcept(false);
 ///
 /// \brief fromBsonValue
 /// \param value
-/// \param ok
-/// \param ok indicator true or false on success or not
+/// \param ok indicator false on not success, not success will not change
 /// \throw BSONexception on mongocxx exception without bool ok argument
-/// \return
+/// \return QVariant value
 ///
 QVariant fromBsonValue(const bsoncxx::types::value & value, bool &ok) noexcept;
 QVariant fromBsonValue(const bsoncxx::types::value & value) noexcept(false);
